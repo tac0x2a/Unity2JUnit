@@ -116,10 +116,21 @@ while i < lines.size
           when "PASS"
             TestResultPass.new
           else
-            file, line, c_name, result, message = lines[i+1].split(":")
+
+            fxn_file, line, c_name, result, message = lines[i,2].join.split(":").map(&:strip)
+
+            fxn_file =~ /(.+?\))(.+)/
+            fxn, file = $1, $2
+
+            message ||= ""
+            full_message = ["#{file} L#{line}", fxn, message].join(", ")
+
+            c_name =~ /^TEST\((.+), (.+)\)/
+            group, name, isPass = [$1, $2].map(&:strip)
+
             case result
             when "FAIL"
-              TestResultFailure.new(file + ":" + line, c_name, message)
+              TestResultFailure.new("TestFailed", message, full_message)
             when "IGNORE"
               TestResultSkipped.new
             end
